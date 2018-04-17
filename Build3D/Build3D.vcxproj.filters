@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="头文件\Halcon">
+      <UniqueIdentifier>{66d4f21a-2556-4be2-b105-6084e6c7b45c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Halon">
+      <UniqueIdentifier>{e62d40e9-5ca3-45d8-b2f0-c63a52b8a337}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Comm">
+      <UniqueIdentifier>{d2f8675d-04cb-48f3-8d14-6f441a515605}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Comm">
+      <UniqueIdentifier>{11dff062-1ab8-4ae0-a859-6905a0a6b63d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="res\Build3D.rc2">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\Build3D.ico">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Build3D.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Build3DDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HalocnTool.h">
+      <Filter>头文件\Halcon</Filter>
+    </ClInclude>
+    <ClInclude Include="Comaccess.h">
+      <Filter>头文件\Comm</Filter>
+    </ClInclude>
+    <ClInclude Include="HalconCamera.h">
+      <Filter>头文件\Halcon</Filter>
+    </ClInclude>
+    <ClInclude Include="HalconAlgorithm.h">
+      <Filter>头文件\Halcon</Filter>
+    </ClInclude>
+    <ClInclude Include="HalconPublic.h">
+      <Filter>头文件\Halcon</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Build3D.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Build3DDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HalocnTool.cpp">
+      <Filter>源文件\Halon</Filter>
+    </ClCompile>
+    <ClCompile Include="Comaccess.cpp">
+      <Filter>源文件\Comm</Filter>
+    </ClCompile>
+    <ClCompile Include="HalconCamera.cpp">
+      <Filter>源文件\Halon</Filter>
+    </ClCompile>
+    <ClCompile Include="HalconAlgorithm.cpp">
+      <Filter>源文件\Halon</Filter>
+    </ClCompile>
+    <ClCompile Include="HalconPublic.cpp">
+      <Filter>源文件\Halon</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Build3D.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

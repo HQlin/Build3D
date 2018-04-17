@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.0" halcon_version="11.0.1" cs="4284966823">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 生成标定板 65mm</c>
+<c>* 行数：7</c>
+<c>* 列数：7</c>
+<c>* 圆点中心间距mm：0.008</c>
+<c>* 圆直径/圆点中心间距：0.5</c>
+<l>* gen_caltab (7, 7, 0.008, 0.5, 'caltab_65mm.descr', 'caltab_65mm.ps')</l>
+<c></c>
+<c>* 标定相机设置</c>
+<l>*StartCamParL := [0.050,0.0,3.75e-6,3.75e-6,Width*.5,Height*.5,Width,Height]</l>
+<l>*StartCamParL := [0.008,0,4.4e-006,4.4e-006,800,600,1600,1200]</l>
+<l>StartCamParL := [0.025,0,2.2e-006,2.2e-006,800,600,1600,1200]</l>
+<c>* 标定图像路径</c>
+<l>picPathCamL := 'cal_image/Left/'</l>
+<l>picPathCamR := 'cal_image/Right/'</l>
+<c>* 重构图像路径</c>
+<l>picPathL := 'cal_image/Left/1'</l>
+<l>picPathR := 'cal_image/Right/1'</l>
+<c>* 生成文件路径</c>
+<l>buildPath := '../Config/'</l>
+<c>* 标定文件</c>
+<l>descrPath := '../Config/caltab_30mm.descr'</l>
+<c></c>
+<l>dev_close_window ()</l>
+<l>read_image (ImageL, picPathL)</l>
+<l>read_image (ImageR, picPathR)</l>
+<l>rgb1_to_gray (ImageL, ImageL)</l>
+<l>rgb1_to_gray (ImageR, ImageR)</l>
+<l>get_image_size (ImageL, Width, Height)</l>
+<l>dev_open_window (0, 0, Width/2, Height/2, 'black', WindowHandleL)</l>
+<l>dev_open_window (0, Width/2 + 10, Width/2, Height/2, 'black', WindowHandleR)</l>
+<l>dev_set_window (WindowHandleL)</l>
+<l>dev_display (ImageL)</l>
+<l>dev_set_window (WindowHandleR)</l>
+<l>dev_display (ImageR)</l>
+<c>* init calib data, camera's resolution is 1292 x 964</c>
+<l>StartCamParR := StartCamParL</l>
+<l>create_calib_data ('calibration_object', 2, 1, CalibDataID)</l>
+<l>set_calib_data_cam_param (CalibDataID, 0, 'area_scan_division', StartCamParL)</l>
+<l>set_calib_data_cam_param (CalibDataID, 1, 'area_scan_division', StartCamParR)</l>
+<l>set_calib_data_calib_object (CalibDataID, 0, descrPath)</l>
+<c>* Start the Loop over the calibration images</c>
+<l>for Index := 1 to 13 by 1</l>
+<l>    dev_set_window (WindowHandleL)</l>
+<l>    tuple_string (Index, '02', StringIndex)</l>
+<l>    read_image (ImageL, picPathCamL + Index)</l>
+<l>    rgb1_to_gray (ImageL, ImageL)</l>
+<l>    dev_display (ImageL)</l>
+<l>    dev_set_window (WindowHandleR)</l>
+<l>    read_image (ImageR, picPathCamR + Index)</l>
+<l>    rgb1_to_gray (ImageR, ImageR)</l>
+<l>    dev_display (ImageR)</l>
+<c>    * Find the calibration plate and store observations</c>
+<c>    * in the calibration data model</c>
+<l>    find_calib_object (ImageL, CalibDataID, 0, 0, Index, [], [])</l>
+<l>    find_calib_object (ImageR, CalibDataID, 1, 0, Index, [], [])</l>
+<c>    * Visualize the extracted calibration marks and the</c>
+<c>    * coordinate system defined by the estimated pose.</c>
+<l>    visualize_observation_results (ImageL, CalibDataID, 0, Index, WindowHandleL)</l>
+<l>    visualize_observation_results (ImageR, CalibDataID, 1, Index, WindowHandleR)</l>
+<l>endfor</l>
+<c>* Perform the actual calibration</c>
+<l>calibrate_cameras (CalibDataID, Errors)</l>
+<c>* Get the calibrated camera parameters</c>
+<l>get_calib_data (CalibDataID, 'camera', 0, 'params', CamParamL)</l>
+<l>get_calib_data (CalibDataID, 'camera', 1, 'params', CamParamR)</l>
+<c>* Since the left camera is the reference camera for the</c>
+<c>* calib data model, the pose of the right camera is its</c>
+<c>* pose relative to the left camera</c>
+<l>get_calib_data (CalibDataID, 'camera', 1, 'pose', cLPcR)</l>
+<c>* Store the results into files. Here, you can either store the</c>
+<c>* individual results</c>
+<l>write_cam_par (CamParamL, buildPath + 'cam_left-125.dat')</l>
+<l>write_cam_par (CamParamR, buildPath + 'cam_right-125.dat')</l>
+<l>write_pose (cLPcR, buildPath + 'pos_right2left.dat')</l>
+<c>* or you store the complete camera setup model and thus enable</c>
+<c>* the later access to all contained parameters</c>
+<l>get_calib_data (CalibDataID, 'model', 'general', 'camera_setup_model', CameraSetupModelID)</l>
+<l>write_camera_setup_model (CameraSetupModelID, 'stereo_camera_setup.csm')</l>
+<l>clear_calib_data (CalibDataID)</l>
+<c>  </c>
+<c></c>
+<c>* 三维构建测试</c>
+<l>dev_open_window (0, 100, Width/2, Height/2, 'black', WindowHandle3DPlot)</l>
+<l>read_image (ImageL, picPathL)</l>
+<l>read_image (ImageR, picPathR)</l>
+<l>read_cam_par (buildPath + 'cam_left-125.dat', CamParamL)</l>
+<l>read_cam_par (buildPath + 'cam_right-125.dat', CamParamR)</l>
+<l>read_pose (buildPath + 'pos_right2left.dat', cLPcR)</l>
+<l>SubSampling := 1</l>
+<l>gen_binocular_rectification_map (MapL, MapR, CamParamL, CamParamR, cLPcR, SubSampling, 'geometric', 'bilinear', RectCamParL, RectCamParR, CamPoseRectL, CamPoseRectR, RectLPosRectR)</l>
+<c>* *****</c>
+<c>* *****</c>
+<c></c>
+<c>* 三维重构</c>
+<l>dev_set_window (WindowHandleL)</l>
+<l>map_image (ImageL, MapL, ImageRectifiedL)</l>
+<l>dev_display (ImageRectifiedL)</l>
+<l>dev_set_window (WindowHandleR)</l>
+<l>map_image (ImageR, MapR, ImageRectifiedR)</l>
+<l>dev_display (ImageRectifiedR)</l>
+<l>binocular_disparity_mg (ImageRectifiedL, ImageRectifiedR, Disparity, Score, 1, 30, 5, 0, 'true', 'default_parameters', 'fast_accurate')</l>
+<l>binocular_distance_mg (ImageRectifiedL, ImageRectifiedR, Distance, Score, RectCamParL, RectCamParR, RectLPosRectR, 1, 30, 5, 0, 'true', 'default_parameters', 'fast_accurate')</l>
+<c>* 相机坐标，以左相机为原点，单位m</c>
+<l>disparity_image_to_xyz (Disparity, X, Y, Z, RectCamParL, RectCamParR, RectLPosRectR)</l>
+<c></c>
+<c>* 这段测试使用 直观建模情况</c>
+<c>* 第一种方式，使用append贴图方式，进行3D-Plot</c>
+<l>invert_image (Disparity, InvertDisparity)</l>
+<l>dev_set_window (WindowHandle3DPlot)</l>
+<l>dev_set_paint (['3d_plot','texture'])</l>
+<l>gen_image_proto (ImageRectifiedL, TexImage, 128)</l>
+<l>min_max_gray (InvertDisparity, InvertDisparity, 0, Min, Max, Range)</l>
+<l>gen_image_proto (InvertDisparity, DepthImage, Min)</l>
+<l>reduce_domain (InvertDisparity, ImageRectifiedL, ImageReduced)</l>
+<l>overpaint_gray (DepthImage, ImageReduced)</l>
+<l>append_channel (DepthImage, TexImage, ImageExtended)</l>
+<l>dev_display (ImageExtended)</l>
+<c></c>
+<c>* 设置显示图像的窗口</c>
+<l>dev_set_window (WindowHandleL)</l>
+<c>* 标定板坐标系 </c>
+<c>* WCS：标定板坐标</c>
+<c>* RectCCS:相机坐标</c>
+<l>map_image (ImageL, MapL, ImageRectifiedL)</l>
+<l>find_caltab (ImageRectifiedL, Caltab, descrPath, 3, 112, 5)</l>
+<l>find_marks_and_pose (ImageRectifiedL, Caltab, descrPath, RectCamParL, 128, 10, 18, 0.9, 15, 100, RCoord, CCoord, PoseL)</l>
+<c>* 标定板坐标2相机坐标 的齐次坐标</c>
+<l>pose_to_hom_mat3d (PoseL, HomMat3d_WCS_to_RectCCS)</l>
+<c>* 齐次坐标逆运算，即得相机坐标2标定板坐标</c>
+<l>hom_mat3d_invert (HomMat3d_WCS_to_RectCCS, HomMat3d_RectCCS_to_WCS)</l>
+<c></c>
+<c>* 选取某个相机坐标XYZ 平移标定板坐标系，即得自定义坐标</c>
+<l>set_color (WindowHandleL, 'red')</l>
+<l>dev_display(ImageRectifiedL)</l>
+<l>draw_point (WindowHandleL, Row, Column)</l>
+<l>get_grayval (X, Row, Column, Wx)</l>
+<l>get_grayval (Y, Row, Column, Wy)</l>
+<l>get_grayval (Z, Row, Column, Wz)</l>
+<c></c>
+<c>* 选取某个相机坐标XYZ，相机坐标 转换成 标定板坐标</c>
+<l>affine_trans_point_3d (HomMat3d_RectCCS_to_WCS, Wx, Wy, Wz, Qx, Qy, Qz)</l>
+<c>* 标定板坐标平移</c>
+<l>hom_mat3d_translate_local (HomMat3d_WCS_to_RectCCS, Qx, Qy, Qz, HomMat3d_WCS_to_RectCCS)</l>
+<c>* 标定板坐标旋转x轴 +180°</c>
+<l>*hom_mat3d_rotate_local (HomMat3d_WCS_to_RectCCS, rad(180), 'x', HomMat3d_WCS_to_RectCCS)</l>
+<c>* 坐标转换成齐次坐标</c>
+<l>hom_mat3d_to_pose (HomMat3d_WCS_to_RectCCS, Pose)</l>
+<c></c>
+<c>* 齐次坐标逆运算，即得相机坐标2自定义坐标</c>
+<l>hom_mat3d_invert (HomMat3d_WCS_to_RectCCS, HomMat3d_RectCCS_to_WCS)</l>
+<c>    </c>
+<c>* 选取某个相机坐标XYZ 转转换成 自定义坐标</c>
+<l>while (1)    </l>
+<l>    set_color (WindowHandleL, 'red')</l>
+<l>    dev_display(ImageRectifiedL) </l>
+<c>    * 显示自定义坐标，即平移旋转后的标定板坐标</c>
+<l>    disp_3d_coord_system (WindowHandleL, RectCamParL, Pose, 0.05)</l>
+<c>    </c>
+<c>    * 选取某个相机坐标XYZ</c>
+<l>    draw_point (WindowHandleL, Row, Column)</l>
+<c>    * 绘画选择点</c>
+<l>    disp_cross (WindowHandleL, Row, Column, 60, 0)</l>
+<l>    get_grayval (X, Row, Column, Wx)</l>
+<l>    get_grayval (Y, Row, Column, Wy)</l>
+<l>    get_grayval (Z, Row, Column, Wz)</l>
+<c>    * 选取某个相机坐标XYZ，相机坐标 转换成 自定义坐标</c>
+<l>    affine_trans_point_3d (HomMat3d_RectCCS_to_WCS, Wx, Wy, Wz, Qx, Qy, Qz)</l>
+<c>    * 坐标单位m 转换成 mm</c>
+<l>    UnitFactor := 1000</l>
+<l>    disp_message (WindowHandleL, '相机坐标[mm]:' + '(' + (UnitFactor*Wx)$'.2f' + ',' + (UnitFactor*Wy)$'.2f' + ',' + (UnitFactor*Wz)$'.2f' + ')', 'image', 50, 100, 'red', 'false')</l>
+<l>    disp_message (WindowHandleL, '自定义坐标[mm]:' + '(' + (UnitFactor*Qx)$'.2f' + ',' + (UnitFactor*Qy)$'.2f' + ',' + (UnitFactor*Qz)$'.2f' + ')', 'image', 100, 100, 'red', 'false')</l>
+<l>    disp_continue_message (WindowHandleL, 'red', 'true')</l>
+<l>    stop ()</l>
+<l>endwhile</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="visualize_observation_results">
+<interface>
+<io>
+<par name="Image"/>
+</io>
+<ic>
+<par name="CalibDataID"/>
+<par name="CameraIdx"/>
+<par name="PoseIdx"/>
+<par name="WindowHandle"/>
+</ic>
+</interface>
+<body>
+<l>get_calib_data_observ_points (CalibDataID, CameraIdx, 0, PoseIdx, RCoord, CCoord, Index, Pose)</l>
+<l>get_calib_data (CalibDataID, 'camera', CameraIdx, 'init_params', CamPar)</l>
+<c>* </c>
+<l>dev_set_window (WindowHandle)</l>
+<l>dev_display (Image)</l>
+<l>dev_set_color ('yellow')</l>
+<l>gen_cross_contour_xld (Cross, RCoord, CCoord, 6, 0.785398)</l>
+<l>dev_display (Cross)</l>
+<l>ArrowLength := 0.02</l>
+<l>ArrowX_CPCS := [0,ArrowLength,0]</l>
+<l>ArrowY_CPCS := [0,0,ArrowLength]</l>
+<l>ArrowZ_CPCS := [0,0,0]</l>
+<l>pose_to_hom_mat3d (Pose, HomMat_CPCS_CCS)</l>
+<l>affine_trans_point_3d (HomMat_CPCS_CCS, ArrowX_CPCS, ArrowY_CPCS, ArrowZ_CPCS, ArrowX_CCS, ArrowY_CCS, ArrowZ_CCS)</l>
+<l>project_3d_point (ArrowX_CCS, ArrowY_CCS, ArrowZ_CCS, CamPar, ArrowRow, ArrowColumn)</l>
+<l>dev_set_color ('green')</l>
+<l>gen_arrow_contour_xld (ArrowX, ArrowRow[0], ArrowColumn[0], ArrowRow[1], ArrowColumn[1], 5, 5)</l>
+<l>gen_arrow_contour_xld (ArrowY, ArrowRow[0], ArrowColumn[0], ArrowRow[2], ArrowColumn[2], 5, 5)</l>
+<l>dev_display (ArrowX)</l>
+<l>dev_display (ArrowY)</l>
+<l>set_tposition (WindowHandle, ArrowRow[1], ArrowColumn[1])</l>
+<l>write_string (WindowHandle, 'x')</l>
+<l>set_tposition (WindowHandle, ArrowRow[2], ArrowColumn[2])</l>
+<l>write_string (WindowHandle, 'y')</l>
+<l>dev_set_color ('white')</l>
+<l>return ()</l>
+</body>
+<docu id="visualize_observation_results">
+<parameters>
+<parameter id="CalibDataID"/>
+<parameter id="CameraIdx"/>
+<parameter id="Image"/>
+<parameter id="PoseIdx"/>
+<parameter id="WindowHandle"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
